@@ -17,6 +17,32 @@ services:
     expose: ["3005"]
     networks: [platform]
 
+  # The consumer of notification.reservas (HU-NOTIF-001): the same image, another process. It
+  # tells the guest how a Reserva ended, by e-mail, reading the address from Identity (E-26) with
+  # its own service token. As the broker user notification, which may only read that queue.
+  # One per environment. It receives no requests: no port.
+  notification-consumer:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    command: ["--reservas-consumer"]
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${PG_DATABASE:?set PG_DATABASE}
+      DATABASE_USER: notification_app
+      DATABASE_PASSWORD: ${NOTIFICATION_APP_PASSWORD:?set NOTIFICATION_APP_PASSWORD}
+      BROKER_HOST: rabbitmq
+      BROKER_USER: notification
+      BROKER_PASSWORD: ${NOTIFICATION_BROKER_PASSWORD:?set NOTIFICATION_BROKER_PASSWORD}
+      IDENTITY_URL: http://identity-api:3004
+      SERVICE_TOKEN: ${NOTIFICATION_SERVICE_TOKEN:?set NOTIFICATION_SERVICE_TOKEN}
+      MAIL_HOST: ${MAIL_HOST:?set MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT:-25}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-false}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@pms-property.test}
+    networks: [platform]
+
 networks:
   platform:
     name: platform
