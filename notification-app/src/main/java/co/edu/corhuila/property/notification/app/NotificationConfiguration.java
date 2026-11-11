@@ -6,6 +6,7 @@ import co.edu.corhuila.property.notification.adapter.in.http.Rs256Verifier;
 import co.edu.corhuila.property.notification.adapter.out.persistence.InMemoryPreferenciasRepository;
 import co.edu.corhuila.property.notification.adapter.out.persistence.JdbcPreferenciasRepository;
 import co.edu.corhuila.property.notification.application.port.out.PreferenciasRepository;
+import co.edu.corhuila.property.notification.application.usecase.PreferenciasService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,6 +38,11 @@ public class NotificationConfiguration {
                     @Value("${notification.database.pool-max:10}") int poolMax,
                     @Value("${notification.database.statement-timeout-ms:5000}") int statementTimeoutMs) {
         return Storage.connect(persistence, url, user, password, poolMax, statementTimeoutMs);
+    }
+
+    @Bean
+    PreferenciasService preferenciasService(PreferenciasRepository preferencias) {
+        return new PreferenciasService(preferencias);
     }
 
     @Bean
