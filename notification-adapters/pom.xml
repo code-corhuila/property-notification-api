@@ -27,6 +27,11 @@
       <artifactId>spring-boot-starter-jdbc</artifactId>
     </dependency>
     <dependency>
+      <!-- the e-mail channel: SMTP through Jakarta Mail (DEC-006); version managed by Spring Boot -->
+      <groupId>org.eclipse.angus</groupId>
+      <artifactId>angus-mail</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
