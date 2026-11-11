@@ -10,6 +10,15 @@ three-module Maven build (ADR-011, Annex C). Its only REST surface is the
 notification preferences of each user (E-16, E-17, HU-NOTIF-002); the consumer of
 Booking's events that sends the messages is of tanda 3.
 
+| Operation | Fiche | What it does |
+|---|---|---|
+| `GET /api/v1/preferencias` | E-16 | The channels of the user of the token; the defaults (e-mail and push on, SMS off) if never saved |
+| `PATCH /api/v1/preferencias` | E-17 | Changes only the channels sent (`email`, `sms`, `push`, each `true` or `false`) and returns all three |
+| `GET /health` | — | Answers without a token, outside `/api/v1` |
+
+Own only: the preferences are always those of the account in the token, whatever its
+role; a service credential gets `403`.
+
 ```
 notification-core/       domain + application — NO Spring dependency
 notification-adapters/   Spring Web adapters
