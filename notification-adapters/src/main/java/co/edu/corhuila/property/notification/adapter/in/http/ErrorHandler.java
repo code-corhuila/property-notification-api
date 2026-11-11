@@ -1,6 +1,8 @@
 package co.edu.corhuila.property.notification.adapter.in.http;
 
 import co.edu.corhuila.property.notification.adapter.in.http.ApiError.ValidationException;
+import co.edu.corhuila.property.notification.application.port.in.AccessDeniedException;
+import co.edu.corhuila.property.notification.application.port.in.NotAuthenticatedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -39,6 +41,16 @@ public class ErrorHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     ResponseEntity<ApiError> method(HttpRequestMethodNotSupportedException e) {
         return respond(HttpStatus.METHOD_NOT_ALLOWED, ApiError.of(ApiError.NOT_FOUND, "method not allowed on this route"));
+    }
+
+    @ExceptionHandler(NotAuthenticatedException.class)
+    ResponseEntity<ApiError> notAuthenticated(NotAuthenticatedException e) {
+        return respond(HttpStatus.UNAUTHORIZED, ApiError.of(ApiError.UNAUTHORIZED, e.getMessage()));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    ResponseEntity<ApiError> forbidden(AccessDeniedException e) {
+        return respond(HttpStatus.FORBIDDEN, ApiError.of(ApiError.FORBIDDEN, e.getMessage()));
     }
 
     /** Logged in full (the MDC adds the correlation id); the client gets a neutral text. */
