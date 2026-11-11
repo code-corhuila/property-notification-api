@@ -12,17 +12,26 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** The contract checks of Annex C that need neither a token nor a business endpoint. */
+/** The contract checks of Annex C that need no business endpoint. */
 @SpringBootTest
 @AutoConfigureMockMvc
 class NotificationHttpTest {
 
     static final String UUID_PATTERN = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
+    static final String TOKEN = TestKeys.bearer("\"sub\":\"11111111-1111-4111-8111-111111111111\",\"roles\":[\"GUEST\"]");
+
     @Autowired
     MockMvc mvc;
+
+    @DynamicPropertySource
+    static void publicKey(DynamicPropertyRegistry registry) {
+        TestKeys.register(registry);
+    }
 
     @Test
     void healthAnswersWithoutAToken() throws Exception {
@@ -33,7 +42,7 @@ class NotificationHttpTest {
 
     @Test
     void anUnknownRouteAnswersWithTheEnvelopeAndTheCorrelationId() throws Exception {
-        mvc.perform(get("/api/v1/nothing-here").header("X-Correlation-Id", "notif-404"))
+        mvc.perform(get("/api/v1/nothing-here").header("Authorization", TOKEN).header("X-Correlation-Id", "notif-404"))
                 .andExpect(status().isNotFound())
                 .andExpect(header().string("X-Correlation-Id", "notif-404"))
                 .andExpect(jsonPath("$.error", is("NOT_FOUND")))
@@ -42,7 +51,7 @@ class NotificationHttpTest {
 
     @Test
     void withoutACorrelationIdTheServiceGeneratesOne() throws Exception {
-        mvc.perform(get("/api/v1/nothing-here"))
+        mvc.perform(get("/api/v1/nothing-here").header("Authorization", TOKEN))
                 .andExpect(header().string("X-Correlation-Id", matchesPattern(UUID_PATTERN)))
                 .andExpect(jsonPath("$.traceId", matchesPattern(UUID_PATTERN)));
     }

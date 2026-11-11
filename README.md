@@ -13,7 +13,7 @@ Booking's events that sends the messages is of tanda 3.
 ```
 notification-core/       domain + application — NO Spring dependency
 notification-adapters/   Spring Web adapters
-  adapter/in/http/         correlation filter, error envelope, /health
+  adapter/in/http/         RS256 verifier, auth and correlation filters, error envelope, /health
 notification-app/        Spring Boot application: the composition root
 deploy/                  Dockerfile and this service's compose file
 ```
