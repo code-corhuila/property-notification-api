@@ -14,6 +14,7 @@ Booking's events that sends the messages is of tanda 3.
 notification-core/       domain + application — NO Spring dependency
 notification-adapters/   Spring Web adapters
   adapter/in/http/         RS256 verifier, auth and correlation filters, error envelope, /health
+  adapter/out/persistence/ the schema notification (JDBC); an in-memory twin only with PERSISTENCE=memory
 notification-app/        Spring Boot application: the composition root
 deploy/                  Dockerfile and this service's compose file
 ```
@@ -36,6 +37,22 @@ Without Maven installed:
 
 ```bash
 docker run --rm -v "$PWD":/app -w /app maven:3.9-eclipse-temurin-21 mvn -B verify
+```
+
+### Storage and the integration tests
+
+The service stores the preferences in the schema `notification`, connecting as
+`notification_app` (`.env.example` lists the variables); without `DATABASE_URL` it does
+not start. The in-memory twin runs only with `PERSISTENCE=memory`: never in an
+environment (norm 5.5.2). The integration tests run against the real engine with the
+schema of `property-notification-db` applied, only when `TEST_DATABASE_URL` is set
+(Annex C). Locally, with `property-notification-db` cloned as a sibling:
+
+```bash
+scripts/test-db.sh            # PostgreSQL 16 on 127.0.0.1:55436 with the notification schema
+TEST_DATABASE_URL=jdbc:postgresql://localhost:55436/property TEST_DATABASE_USER=notification_app \
+  TEST_DATABASE_PASSWORD=test-only mvn -B verify
+scripts/test-db.sh down
 ```
 
 The image:

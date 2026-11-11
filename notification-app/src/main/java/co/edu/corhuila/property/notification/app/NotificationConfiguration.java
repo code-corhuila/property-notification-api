@@ -3,6 +3,9 @@ package co.edu.corhuila.property.notification.app;
 import co.edu.corhuila.property.notification.adapter.in.http.AuthFilter;
 import co.edu.corhuila.property.notification.adapter.in.http.CorrelationFilter;
 import co.edu.corhuila.property.notification.adapter.in.http.Rs256Verifier;
+import co.edu.corhuila.property.notification.adapter.out.persistence.InMemoryPreferenciasRepository;
+import co.edu.corhuila.property.notification.adapter.out.persistence.JdbcPreferenciasRepository;
+import co.edu.corhuila.property.notification.application.port.out.PreferenciasRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,6 +23,27 @@ import org.springframework.core.Ordered;
  */
 @Configuration
 public class NotificationConfiguration {
+
+    /**
+     * PERSISTENCE=postgres (the default) needs DATABASE_URL, DATABASE_USER (notification_app
+     * in the platform) and DATABASE_PASSWORD: without them the service does not start.
+     * PERSISTENCE=memory is for tests and local development only (norm 5.5.2).
+     */
+    @Bean
+    Storage storage(@Value("${notification.persistence:postgres}") String persistence,
+                    @Value("${notification.database.url:}") String url,
+                    @Value("${notification.database.user:}") String user,
+                    @Value("${notification.database.password:}") String password,
+                    @Value("${notification.database.pool-max:10}") int poolMax,
+                    @Value("${notification.database.statement-timeout-ms:5000}") int statementTimeoutMs) {
+        return Storage.connect(persistence, url, user, password, poolMax, statementTimeoutMs);
+    }
+
+    @Bean
+    PreferenciasRepository preferenciasRepository(Storage storage) {
+        return storage.inMemory() ? new InMemoryPreferenciasRepository()
+                : new JdbcPreferenciasRepository(storage.jdbc(), storage.tx());
+    }
 
     /**
      * JWT_PUBLIC_KEY (the PEM itself; a one-line value with literal \n escapes, as
