@@ -27,3 +27,28 @@ notification:
     password: ${DATABASE_PASSWORD:}
     pool-max: ${DB_POOL_MAX:10}
     statement-timeout-ms: ${DB_STATEMENT_TIMEOUT_MS:5000}
+  # The consumer of notification.reservas (--reservas-consumer, HU-NOTIF-001). Ignored by the API.
+  consumer:
+    pool-max: ${CONSUMER_DB_POOL_MAX:2}
+  broker:
+    host: ${BROKER_HOST:rabbitmq}
+    port: ${BROKER_PORT:5672}
+    user: ${BROKER_USER:notification}
+    password: ${BROKER_PASSWORD:}
+    queue: ${BROKER_QUEUE:notification.reservas}
+    reconnect: ${BROKER_RECONNECT:5s}
+  identity:
+    # E-26 of Identity, with the service token svc-notification (DEC-005).
+    url: ${IDENTITY_URL:http://identity-api:3004}
+    service-token: ${SERVICE_TOKEN:}
+    timeout: ${IDENTITY_TIMEOUT:3s}
+  mail:
+    # SMTP (DEC-006): in develop the test mail server of --profile dev; in qa and main the relay
+    # of the environment, with STARTTLS and its credentials as secrets.
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:25}
+    user: ${MAIL_USER:}
+    password: ${MAIL_PASSWORD:}
+    starttls: ${MAIL_STARTTLS:false}
+    from: ${MAIL_FROM:no-reply@pms-property.test}
+    timeout: ${MAIL_TIMEOUT:10s}

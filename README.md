@@ -34,6 +34,28 @@ so a `@Service` or `@Entity` in the domain **does not compile** (norm 5.3.3).
 The schema lives in `property-notification-db`; this service never migrates it. In
 the platform it connects as `notification_app` (Annex J, ADR-008).
 
+## The consumer of the outcome of a reservation (HU-NOTIF-001)
+
+The same jar started with `--reservas-consumer` (service `notification-consumer` in
+`deploy/compose.yml`) reads `notification.reservas` as the broker user `notification` and tells
+the guest how each Reserva ended (`ReservaConfirmada`, `ReservaCancelada`, `ReservaExpirada`):
+
+1. Once per event: an `eventId` already in `processed_event` changes nothing.
+2. With e-mail on in the guest's preferences (no row = the defaults), it reads the address from
+   Identity's `GET /users/{id}/contact` (E-26) with its own token `svc-notification`, renders
+   the template of the event (`message_template`, seeded by `property-notification-db`) and sends
+   it by SMTP to `MAIL_HOST`. **Only e-mail is sent in MVP 1**: SMS and push keep the preference
+   but send and record nothing (DEC-006). An account Identity does not know (`404`) has no
+   address: nothing is sent.
+3. The `delivery_log` row and the `eventId` are written in one transaction, then the message is
+   acknowledged. Identity, the database or the mail server failing: retried after 1 s, 2 s and
+   4 s, then rejected to `notification.reservas.dlq` (7 days). An unreadable message goes there
+   at once.
+
+Neither the e-mail nor the body of a message is ever logged or stored here; each line carries
+the `correlationId` of the event. In `develop`, the test mail server of `--profile dev` in
+`property-infra-postgres` receives the messages.
+
 ## Run
 
 ```bash
